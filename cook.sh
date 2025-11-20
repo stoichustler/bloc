@@ -18,7 +18,7 @@ export TARGET=arm64
 export TARGET_ARCH=aarch64
 export KERNCONF=DOMU
 export MAKEOBJDIRPREFIX=$BLOC
-export DESTDIR=$BLOC/install
+DESTDIR=$BLOC/install
 
 echo ">>> KICK COMPILATION"
 cat $WORKDIR/sys/bloc.ref
@@ -45,16 +45,6 @@ case $opt in
 			WITH_LLVM_TARGET_AARCH64=yes WITH_LLVM_TARGET_ARM=yes WITHOUT_LIB32=yes \
 			WITHOUT_TESTS=yes NO_DOC=yes \
 			buildkernel
-
-		if [ ! -d $DESTDIR ];then
-			mkdir -p $DESTDIR
-		fi
-
-		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX tools/build/make.py --debug --bootstrap-toolchain -j16 \
-			TARGET=$TARGET TARGET_ARCH=$TARGET_ARCH KERNCONF=$KERNCONF \
-			WITH_LLVM_TARGET_AARCH64=yes WITH_LLVM_TARGET_ARM=yes WITHOUT_LIB32=yes \
-			WITHOUT_TESTS=yes NO_DOC=yes \
-			DESTDIR=$DESTDIR installkernel
 		;;
 	userspace)
 		if [ ! -d $BLOC ];then
@@ -66,10 +56,17 @@ case $opt in
 			WITH_LLVM_TARGET_AARCH64=yes WITH_LLVM_TARGET_ARM=yes WITHOUT_LIB32=yes \
 			WITHOUT_TESTS=yes NO_DOC=yes \
 			buildworld
-
+		;;
+	install)
 		if [ ! -d $DESTDIR ];then
 			mkdir -p $DESTDIR
 		fi
+
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX tools/build/make.py --debug --bootstrap-toolchain -j16 \
+			TARGET=$TARGET TARGET_ARCH=$TARGET_ARCH KERNCONF=$KERNCONF \
+			WITH_LLVM_TARGET_AARCH64=yes WITH_LLVM_TARGET_ARM=yes WITHOUT_LIB32=yes \
+			WITHOUT_TESTS=yes NO_DOC=yes \
+			DESTDIR=$DESTDIR installkernel
 
 		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX tools/build/make.py --debug --bootstrap-toolchain -j16 \
 			TARGET=$TARGET TARGET_ARCH=$TARGET_ARCH KERNCONF=$KERNCONF \
