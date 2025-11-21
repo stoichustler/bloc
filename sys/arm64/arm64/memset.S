@@ -61,10 +61,10 @@ ENTRY(memset)
         orr     A_lw, A_lw, A_lw, lsl #16
         orr     A_l, A_l, A_l, lsl #32
 .Ltail_maybe_long:
-        cmp	count, #64
+        cmp     count, #64
         b.ge    .Lnot_short
 .Ltail_maybe_tiny:
-        cmp	count, #15
+        cmp     count, #15
         b.le    .Ltail15tiny
 .Ltail63:
         ands    tmp1, count, #0x30
