@@ -20,7 +20,7 @@
 #NO_UNIVERSE
 
 cpu		ARM64
-ident		VIRM
+ident		DOMU
 
 include		"std.arm64"
 include		"std.dev"

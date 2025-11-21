@@ -81,6 +81,7 @@ case $opt in
 		echo "${0} userspace    - build userspace + toolchain (time-consuming)"
 		echo "${0} toolchain    - build kernel toolchain (only)"
 		echo "${0} kernel       - build kernel"
+		echo "${0} install      - install kernel + userspace"
 		echo "${0} remove       - remove all built targets (toolchains + userspace + kernel) [cautious]"
 		;;
 esac
