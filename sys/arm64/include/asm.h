@@ -160,6 +160,21 @@
 #endif
 
 /*
+ * adrp - Form PC-relative address to 4KB page adds an immediate value
+ *        that is shifted left by 12 bits, to the PC value to form a
+ *        PC-relative address, with the bottom 12 bits masked out, and
+ *        writes the result to the destination register.
+ *        (计算4KB页基地址)
+ * :lo12: takes the lower 12 bits of data. (page offset)
+ *
+ * adr_l used to take the address of "sym".
+ */
+.macro adr_l, dst, sym
+    adrp \dst, \sym
+    add  \dst, \dst, :lo12:\sym
+.endm
+
+/*
  * To help protect against ROP attacks we can use Pointer Authentication
  * to sign the return address before pushing it to the stack.
  *
