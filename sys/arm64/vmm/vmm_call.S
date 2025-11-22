@@ -32,11 +32,11 @@
 
 #include <machine/asm.h>
 
-	.text
+        .text
 
 ENTRY(vmm_call_hyp)
-	hvc	#0
-	ret
+        hvc     #0
+        ret
 END(vmm_call_hyp)
 
 GNU_PROPERTY_AARCH64_FEATURE_1_NOTE(GNU_PROPERTY_AARCH64_FEATURE_1_VAL)

@@ -1,7 +1,7 @@
 # bloc
 
-bloc (FreeBSD) arm64 on QEMU:
------------------------------
+VM on QEMU:
+-----------
 
 Use u-boot
 
@@ -17,7 +17,7 @@ qemu-system-aarch64 -m 4096M -cpu cortex-a57 -M virt  \
 
 VMDISK: *.qcom
 
-bloc (FreeBSD) arm64 as domU on Roc:
-------------------------------------
+domU on Roc:
+------------
 
 Not ready

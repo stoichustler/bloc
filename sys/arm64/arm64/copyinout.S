@@ -37,29 +37,29 @@
 #include "assym.inc"
 
 .macro check_user_access user_arg, size_arg, bad_access_func
-	/*
-	 * TBI is enabled from 15.0. Clear the top byte of the userspace
-	 * address before checking whether it's within the given limit.
-	 * The later load/store instructions will fault if TBI is disabled
-	 * for the current process.
-	 */
-	and	x6, x\user_arg, #(~TBI_ADDR_MASK)
-	adds	x6, x6, x\size_arg
-	b.cs	\bad_access_func
-	ldr	x7, =VM_MAXUSER_ADDRESS
-	cmp	x6, x7
-	b.hi	\bad_access_func
+        /*
+         * TBI is enabled from 15.0. Clear the top byte of the userspace
+         * address before checking whether it's within the given limit.
+         * The later load/store instructions will fault if TBI is disabled
+         * for the current process.
+         */
+        and     x6, x\user_arg, #(~TBI_ADDR_MASK)
+        adds    x6, x6, x\size_arg
+        b.cs    \bad_access_func
+        ldr     x7, =VM_MAXUSER_ADDRESS
+        cmp     x6, x7
+        b.hi    \bad_access_func
 .endm
 
 /*
  * Fault handler for the copy{in,out} functions below.
  */
 ENTRY(copyio_fault)
-	SET_FAULT_HANDLER(xzr, x1) /* Clear the handler */
-	EXIT_USER_ACCESS_CHECK(w0, x1)
+        SET_FAULT_HANDLER(xzr, x1) /* Clear the handler */
+        EXIT_USER_ACCESS_CHECK(w0, x1)
 copyio_fault_nopcb:
-	mov	x0, #EFAULT
-	ret
+        mov     x0, #EFAULT
+        ret
 END(copyio_fault)
 
 /*
@@ -68,13 +68,13 @@ END(copyio_fault)
  * int copyout(const void *kaddr, void *udaddr, size_t len)
  */
 ENTRY(copyout)
-	cbz	x2, 1f
-	check_user_access 1, 2, copyio_fault_nopcb
+        cbz     x2, 1f
+        check_user_access 1, 2, copyio_fault_nopcb
 
-	b	copycommon
+        b       copycommon
 
-1:	mov	x0, xzr		/* return 0 */
-	ret
+1:      mov     x0, xzr /* return 0 */
+        ret
 
 END(copyout)
 
@@ -84,13 +84,13 @@ END(copyout)
  * int copyin(const void *uaddr, void *kdaddr, size_t len)
  */
 ENTRY(copyin)
-	cbz	x2, 1f
-	check_user_access 0, 2, copyio_fault_nopcb
+        cbz     x2, 1f
+        check_user_access 0, 2, copyio_fault_nopcb
 
-	b	copycommon
+        b       copycommon
 
-1:	mov	x0, xzr		/* return 0 */
-	ret
+1:      mov     x0, xzr /* return 0 */
+        ret
 
 END(copyin)
 
@@ -100,41 +100,41 @@ END(copyin)
  * int copyinstr(const void *udaddr, void *kaddr, size_t len, size_t *done)
  */
 ENTRY(copyinstr)
-	mov	x5, xzr		/* count = 0 */
-	mov	w4, #1		/* If zero return faulure */
-	cbz	x2, 3f		/* If len == 0 then skip loop */
+        mov     x5, xzr           /* count = 0                  */
+        mov     w4, #1            /* If zero return faulure     */
+        cbz     x2, 3f            /* If len == 0 then skip loop */
 
-	adr	x6, copyio_fault /* Get the handler address */
-	SET_FAULT_HANDLER(x6, x7) /* Set the handler */
+        adr     x6, copyio_fault  /* Get the handler address    */
+        SET_FAULT_HANDLER(x6, x7) /* Set the handler            */
 
-	/*
-	 *  As in check_user_access mask off the TBI bits for the cmp
-	 * instruction. The load will fail trap if TBI is disabled, but we
-	 * need to check the address didn't wrap.
-	 */
-	and	x6, x0, #(~TBI_ADDR_MASK)
-	ldr	x7, =VM_MAXUSER_ADDRESS
-1:	cmp	x6, x7
-	b.cs	copyio_fault
-	ldtrb	w4, [x0]	/* Load from uaddr */
-	add	x0, x0, #1	/* Next char */
-	strb	w4, [x1], #1	/* Store in kaddr */
-	add	x5, x5, #1	/* count++ */
-	add	x6, x6, #1	/* Increment masked address */
-	cbz	w4, 2f		/* Break when NUL-terminated */
-	sub	x2, x2, #1	/* len-- */
-	cbnz	x2, 1b
+        /*
+         * As in check_user_access mask off the TBI bits for the cmp
+         * instruction. The load will fail trap if TBI is disabled, but we
+         * need to check the address didn't wrap.
+         */
+        and     x6, x0, #(~TBI_ADDR_MASK)
+        ldr     x7, =VM_MAXUSER_ADDRESS
+1:      cmp     x6, x7
+        b.cs    copyio_fault
+        ldtrb   w4, [x0]        /* Load from uaddr           */
+        add     x0, x0, #1      /* Next char                 */
+        strb    w4, [x1], #1    /* Store in kaddr            */
+        add     x5, x5, #1      /* count++                   */
+        add     x6, x6, #1      /* Increment masked address  */
+        cbz     w4, 2f          /* Break when NUL-terminated */
+        sub     x2, x2, #1      /* len--                     */
+        cbnz    x2, 1b
 
-2:	SET_FAULT_HANDLER(xzr, x7) /* Clear the handler */
+2:      SET_FAULT_HANDLER(xzr, x7) /* Clear the handler     */
 
 
-3:	cbz	x3, 4f		/* Check if done != NULL */
-	str	x5, [x3]	/* done = count */
+3:      cbz     x3, 4f             /* Check if done != NULL */
+        str     x5, [x3]           /* done = count          */
 
-4:	mov	w1, #ENAMETOOLONG /* Load ENAMETOOLONG to return if failed */
-	cmp	w4, #0		/* Check if we saved the NUL-terminator */
-	csel	w0, wzr, w1, eq	/* If so return success, else failure */
-	ret
+4:      mov     w1, #ENAMETOOLONG  /* Load ENAMETOOLONG to return if failed */
+        cmp     w4, #0             /* Check if we saved the NUL-terminator  */
+        csel    w0, wzr, w1, eq    /* If so return success, else failure    */
+        ret
 END(copyinstr)
 
 /*
@@ -152,88 +152,88 @@ END(copyinstr)
  *   Consider using separate functions for each ARM64 core. Adding memory
  *   access interleaving might increase a total throughput on A57 or A72.
  */
-	.text
-	.align	4
-	.local	copycommon
-	.type	copycommon,@function
+        .text
+        .align  4
+        .local  copycommon
+        .type   copycommon,@function
 
 copycommon:
-	adr	x6, copyio_fault /* Get the handler address */
-	SET_FAULT_HANDLER(x6, x7) /* Set the handler */
-	ENTER_USER_ACCESS(w6, x7)
+        adr     x6, copyio_fault  /* Get the handler address */
+        SET_FAULT_HANDLER(x6, x7) /* Set the handler */
+        ENTER_USER_ACCESS(w6, x7)
 
-	/* Check alignment */
-	orr	x3, x0, x1
-	ands	x3, x3, 0x07
-	b.eq	aligned
+        /* Check alignment */
+        orr     x3, x0, x1
+        ands    x3, x3, 0x07
+        b.eq    aligned
 
-	/* Unaligned is byte by byte copy */
+        /* Unaligned is byte by byte copy */
 byte_by_byte:
-	ldrb	w3, [x0], #0x01
-	strb	w3, [x1], #0x01
-	subs	x2, x2, #0x01
-	b.ne	byte_by_byte
-	b	ending
+        ldrb    w3, [x0], #0x01
+        strb    w3, [x1], #0x01
+        subs    x2, x2, #0x01
+        b.ne    byte_by_byte
+        b       ending
 
 aligned:
-	cmp	x2, #0x10
-	b.lt	lead_out
-	cmp	x2, #0x40
-	b.lt	by_dwords_start
+        cmp     x2, #0x10
+        b.lt    lead_out
+        cmp     x2, #0x40
+        b.lt    by_dwords_start
 
-	/* Block copy */
-	lsr	x15, x2, #0x06
+        /* Block copy */
+        lsr     x15, x2, #0x06
 by_blocks:
-	ldp	x3, x4, [x0], #0x10
-	ldp	x5, x6, [x0], #0x10
-	ldp	x7, x8, [x0], #0x10
-	ldp	x9, x10, [x0], #0x10
-	stp	x3, x4, [x1], #0x10
-	stp	x5, x6, [x1], #0x10
-	stp	x7, x8, [x1], #0x10
-	stp	x9, x10, [x1], #0x10
+        ldp     x3, x4,  [x0], #0x10
+        ldp     x5, x6,  [x0], #0x10
+        ldp     x7, x8,  [x0], #0x10
+        ldp     x9, x10, [x0], #0x10
+        stp     x3, x4,  [x1], #0x10
+        stp     x5, x6,  [x1], #0x10
+        stp     x7, x8,  [x1], #0x10
+        stp     x9, x10, [x1], #0x10
 
-	subs	x15, x15, #0x01
-	b.ne	by_blocks
+        subs    x15, x15, #0x01
+        b.ne    by_blocks
 
-	and	x2, x2, #0x3f
+        and     x2, x2, #0x3f
 
 by_dwords_start:
-	lsr	x15, x2, #0x04
-	cbz	x15, lead_out
+        lsr     x15, x2, #0x04
+        cbz     x15, lead_out
 by_dwords:
-	ldp	x3, x4, [x0], #0x10
-	stp	x3, x4, [x1], #0x10
-	subs	x15, x15, #0x01
-	b.ne  	by_dwords
+        ldp     x3, x4, [x0], #0x10
+        stp     x3, x4, [x1], #0x10
+        subs    x15, x15, #0x01
+        b.ne    by_dwords
 
-	/* Less than 16 bytes to copy */
+        /* Less than 16 bytes to copy */
 lead_out:
-	tbz	x2, #0x03, last_word
-	ldr	x3, [x0], #0x08
-	str	x3, [x1], #0x08
+        tbz     x2, #0x03, last_word
+        ldr     x3, [x0], #0x08
+        str     x3, [x1], #0x08
 
 last_word:
-	tbz	x2, #0x02, last_hword
-	ldr	w3, [x0], #0x04
-	str	w3, [x1], #0x04
+        tbz     x2, #0x02, last_hword
+        ldr     w3, [x0], #0x04
+        str     w3, [x1], #0x04
 
 last_hword:
-	tbz	x2, #0x01, last_byte
-	ldrh	w3, [x0], #0x02
-	strh	w3, [x1], #0x02
+        tbz     x2, #0x01, last_byte
+        ldrh    w3, [x0], #0x02
+        strh    w3, [x1], #0x02
 
 last_byte:
-	tbz	x2, #0x00, ending
-	ldrb	w3, [x0]
-	strb	w3, [x1]
+        tbz     x2, #0x00, ending
+        ldrb    w3, [x0]
+        strb    w3, [x1]
 
 ending:
-	EXIT_USER_ACCESS_CHECK(w6, x7)
-	SET_FAULT_HANDLER(xzr, x7) /* Clear the handler */
+        EXIT_USER_ACCESS_CHECK(w6, x7)
+        SET_FAULT_HANDLER(xzr, x7) /* Clear the handler */
 
-	mov	x0, xzr		/* return 0 */
-	ret
-	.size	copycommon, . - copycommon
+        mov     x0, xzr            /* return 0          */
+        ret
+        .size   copycommon, . - copycommon
 
 GNU_PROPERTY_AARCH64_FEATURE_1_NOTE(GNU_PROPERTY_AARCH64_FEATURE_1_VAL)
