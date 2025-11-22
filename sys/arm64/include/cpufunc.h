@@ -31,6 +31,14 @@
 #ifndef _MACHINE_CPUFUNC_H_
 #define	_MACHINE_CPUFUNC_H_
 
+/* Breakpoint instruction generates a Breakpoint Instruction exception.
+ * The PE records the exception in ESR_ELx, using the EC value 0x3C, and
+ * captures the value of the immediate argument in ESR_ELx.ISS.
+ * Within a guarded memory region, while PSTATE.BTYPE != 0b00, a BRK
+ * instruction will not generate a Branch Target exception and will
+ * generate a Breakpoint Instruction exception as normal. For more
+ * information, see PSTATE.BTYPE.
+ */
 static __inline void
 breakpoint(void)
 {

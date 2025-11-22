@@ -162,10 +162,10 @@ cninit(void)
 	 * once we are up and going.
 	 * 
 	 */
-        cn_mute = ((boothowto & (RB_MUTE
-			|RB_SINGLE
-			|RB_VERBOSE
-			|RB_ASKNAME)) == RB_MUTE);
+	cn_mute = ((boothowto & (RB_MUTE
+		|RB_SINGLE
+		|RB_VERBOSE
+		|RB_ASKNAME)) == RB_MUTE);
 
 	/*
 	 * Bring up the kbd layer just in time for cnprobe.  Console drivers

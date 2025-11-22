@@ -677,6 +677,10 @@ cache_setup(void)
 
 	identify_cache(READ_SPECIALREG(ctr_el0));
 
+	/*
+	 * dczid_el0 - Indicates the block size that is written with byte values of 0
+	 *             by the DC ZVA (Data Cache Zero by Address) System instruction.
+	 */
 	dczid_el0 = READ_SPECIALREG(dczid_el0);
 
 	/* Check if dc zva is not prohibited */
@@ -788,6 +792,11 @@ initarm(struct arm64_bootparams *abp)
 
 	/* locore.S sets sp_el0 to &thread0 so no need to set it here. */
 	PCPU_SET(curthread, &thread0);
+	/*
+	 * midr_el1 - Provides identification information for the PE, including
+	 *            an implementer code for the device and a device ID number.
+	 * e.g. implementer, architecture, ...
+	 */
 	PCPU_SET(midr, get_midr());
 
 	link_elf_ireloc();
@@ -938,7 +947,12 @@ void
 dbg_init(void)
 {
 
-	/* Clear OS lock */
+	/* Clear OS lock
+	 *
+	 * oslar_el1 - Used to lock or unlock the OS Lock.
+	 * The OS Lock can also be locked or unlocked using DBGOSLAR.
+	 * (允许外部调试器访问寄存器)
+	 */
 	WRITE_SPECIALREG(oslar_el1, 0);
 
 	/* This permits DDB to use debug registers for watchpoints. */

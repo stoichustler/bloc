@@ -76,7 +76,7 @@ ENTRY(_start)
         bl      enter_kernel_el
 
         /* Set the context id (for debug and trace logic) */
-        msr	    contextidr_el1, xzr
+        msr     contextidr_el1, xzr
 
         /* Get the virt -> phys offset */
         bl      get_load_phys_addr
